@@ -1,0 +1,9 @@
+# RSPRecomp config for Rush 2049's audio microcode (generated with the
+# N64Recomp config). Run in this directory: RSPRecomp rush2049.rsp_audio.toml
+# -> rsp/rush_audio_ucode.cpp (private: translated ROM code).
+text_offset = 0x2AC50
+text_size = 0xF40
+text_address = 0x04001080
+rom_file_path = "rom/rush2049.recomp.z64"
+output_file_path = "rsp/rush_audio_ucode.cpp"
+output_function_name = "rush_audio_ucode"

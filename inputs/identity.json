@@ -1,0 +1,397 @@
+{
+ "note": "Recompiler-only names for static (boot segment) libultra functions. N64Recomp replaces libultra functions BY NAME with N64ModernRuntime implementations (reimplemented list) or drops them (ignored list), so the name the recompiler sees decides what runs. These are the functions whose recompiler name must differ from the decompilation's current (ultralib VERSION_J) name: a canonical name that is on N64Recomp's lists but must stay emitted (or is shimmed, patches.json) gets suffix _rx; the three PI raw functions keep their pre-J names (osPiRawStartDma, osEPiRawStartDma) that N64Recomp knows, while VERSION_J spells them __osPiRawStartDma/__osEPiRawStartDma/__osPiRawReadIo; and functions the decompilation renamed after the recompiled output was first verified are mapped back to their former names (the ultralib ll.c/llcvt.c helpers to their libgcc names, and the later ultralib identifications) so the recompiled output stays unchanged. The renames apply to the recompiler's symbol file only. 'inventory' is the decompilation's name; 'evidence' is what identifies the body.",
+ "static": [
+  {
+   "vram": "0x800086F0",
+   "inventory": "osSyncPrintf",
+   "recomp": "osWritebackDCache_full",
+   "confidence": "medium",
+   "evidence": "ultralib src/libc/syncprintf.c osSyncPrintf (inventory rename; osWritebackDCache_full before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000870C",
+   "inventory": "rmonPrintf",
+   "recomp": "rmonPrintf_rx",
+   "confidence": "medium",
+   "evidence": "empty varargs body (spills a0-a3, returns) after osSyncPrintf, as in syncprintf.c (FINALROM); no jal callers: rmonPrintf (earlier inventory name osWritebackDCacheAll)"
+  },
+  {
+   "vram": "0x800099F0",
+   "inventory": "__d_to_ll",
+   "recomp": "__fixdfdi",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/llcvt.c __d_to_ll (inventory rename; libgcc name __fixdfdi before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x80009A0C",
+   "inventory": "__f_to_ll",
+   "recomp": "__fixsfdi",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/llcvt.c __f_to_ll (inventory rename; libgcc name __fixsfdi before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x80009A28",
+   "inventory": "__d_to_ull",
+   "recomp": "__fixunsdfdi",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/llcvt.c __d_to_ull (inventory rename; libgcc name __fixunsdfdi before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x80009AC8",
+   "inventory": "__f_to_ull",
+   "recomp": "__fixunssfdi",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/llcvt.c __f_to_ull (inventory rename; libgcc name __fixunssfdi before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x80009B64",
+   "inventory": "__ll_to_d",
+   "recomp": "__floatdidf",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/llcvt.c __ll_to_d (inventory rename; libgcc name __floatdidf before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x80009B7C",
+   "inventory": "__ll_to_f",
+   "recomp": "__floatdisf",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/llcvt.c __ll_to_f (inventory rename; libgcc name __floatdisf before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x80009B94",
+   "inventory": "__ull_to_d",
+   "recomp": "__floatundidf",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/llcvt.c __ull_to_d (inventory rename; libgcc name __floatundidf before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x80009BC8",
+   "inventory": "__ull_to_f",
+   "recomp": "__floatundisf",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/llcvt.c __ull_to_f (inventory rename; libgcc name __floatundisf before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x80009E18",
+   "inventory": "__osPfsCheckRamArea",
+   "recomp": "__osTimerInterrupt",
+   "confidence": "high",
+   "evidence": "ultralib src/io/pfsinitpak.c (static) __osPfsCheckRamArea (inventory rename, byte-identical compile; __osTimerInterrupt before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change. Note: under its old name N64Recomp IGNORES this function (__osTimerInterrupt is on ignored_funcs); that pre-existing behaviour is kept here here."
+  },
+  {
+   "vram": "0x8000A088",
+   "inventory": "__osMakeMotorData",
+   "recomp": "__osMakeMotorData_rx",
+   "confidence": "high",
+   "evidence": "(channel, mdata): 0xFF,0x23,1,3, address CRC of 0x600 | 0xC000: libultra __osMakeMotorData (earlier inventory name __osMotorAccess)"
+  },
+  {
+   "vram": "0x8000A8D8",
+   "inventory": "__osPfsReleasePages",
+   "recomp": "__osPfsReleasePages_rx",
+   "confidence": "high",
+   "evidence": "leaf called by osPfsDeleteFile: libultra __osPfsReleasePages (earlier inventory name osPfsFindFile)"
+  },
+  {
+   "vram": "0x8000ADF0",
+   "inventory": "__osPfsGetNextPage",
+   "recomp": "__osPfsGetNextPage_rx",
+   "confidence": "high",
+   "evidence": "__osPfsRWInode only; called by osPfsReadWriteFile: libultra __osPfsGetNextPage (earlier inventory name osPfsGetFileStat)"
+  },
+  {
+   "vram": "0x8000BD90",
+   "inventory": "osStopThread",
+   "recomp": "osStopThread_rx",
+   "confidence": "high",
+   "evidence": "switch on state 2/4/8 -> OS_STATE_STOPPED, __osDequeueThread / __osEnqueueAndYield(NULL): libultra osStopThread (named _rx and ignored in patches.json: the host shim implements stopping ANOTHER thread, which N64ModernRuntime's osStopThread does not) (earlier inventory name osPfsChecker_full)"
+  },
+  {
+   "vram": "0x8000C050",
+   "inventory": "__osDequeueThread",
+   "recomp": "dll_remove",
+   "confidence": "high",
+   "evidence": "ultralib src/os/thread.c __osDequeueThread (inventory rename; dll_remove before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000C090",
+   "inventory": "__osTimerServicesInit",
+   "recomp": "dll_init",
+   "confidence": "high",
+   "evidence": "ultralib src/os/timerintr.c __osTimerServicesInit (inventory rename, byte-identical compile; dll_init before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000C11C",
+   "inventory": "__osTimerInterrupt",
+   "recomp": "dll_update",
+   "confidence": "high",
+   "evidence": "ultralib src/os/timerintr.c __osTimerInterrupt (inventory rename, byte-identical compile; dll_update before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000C294",
+   "inventory": "__osSetTimerIntr",
+   "recomp": "dll_reschedule",
+   "confidence": "high",
+   "evidence": "ultralib src/os/timerintr.c __osSetTimerIntr (inventory rename, byte-identical compile; dll_reschedule before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000C308",
+   "inventory": "__osInsertTimer",
+   "recomp": "dll_insert",
+   "confidence": "high",
+   "evidence": "ultralib src/os/timerintr.c __osInsertTimer (inventory rename; dll_insert before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000CFC4",
+   "inventory": "__osEnqueueAndYield",
+   "recomp": "__osCleanupThread",
+   "confidence": "high",
+   "evidence": "ultralib src/os/exceptasm.s __osEnqueueAndYield (inventory rename; __osCleanupThread before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000D7A0",
+   "inventory": "__osSiRawReadIo",
+   "recomp": "__osSiRawReadIo_rx",
+   "confidence": "high",
+   "evidence": "__osSiDeviceBusy, then lw K1|devAddr (PIF RAM); only caller osInitialize: libultra __osSiRawReadIo (earlier inventory name osPiReadIo)"
+  },
+  {
+   "vram": "0x8000D7F0",
+   "inventory": "__osSiRawWriteIo",
+   "recomp": "__osSiRawWriteIo_rx",
+   "confidence": "high",
+   "evidence": "__osSiDeviceBusy, then sw to K1|devAddr: libultra __osSiRawWriteIo (earlier inventory name osPiWriteWord)"
+  },
+  {
+   "vram": "0x8000D8F0",
+   "inventory": "__ull_rshift",
+   "recomp": "__lshrdi3",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/ll.c __ull_rshift (inventory rename; libgcc name __lshrdi3 before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000D91C",
+   "inventory": "__ull_rem",
+   "recomp": "__umoddi3",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/ll.c __ull_rem (inventory rename; libgcc name __umoddi3 before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000D958",
+   "inventory": "__ull_div",
+   "recomp": "__udivdi3",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/ll.c __ull_div (inventory rename; libgcc name __udivdi3 before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000D994",
+   "inventory": "__ll_lshift",
+   "recomp": "__ashldi3",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/ll.c __ll_lshift (inventory rename; libgcc name __ashldi3 before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000D9C0",
+   "inventory": "__ll_rem",
+   "recomp": "__umoddi3_alt",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/ll.c __ll_rem (inventory rename; libgcc name __umoddi3_alt before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000D9FC",
+   "inventory": "__ll_div",
+   "recomp": "__divdi3",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/ll.c __ll_div (inventory rename; libgcc name __divdi3 before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000DA58",
+   "inventory": "__ll_mul",
+   "recomp": "__muldi3",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/ll.c __ll_mul (inventory rename; libgcc name __muldi3 before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000DA88",
+   "inventory": "__ull_divremi",
+   "recomp": "__qdivrem",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/ll.c __ull_divremi (inventory rename; libgcc name __qdivrem before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000DAE8",
+   "inventory": "__ll_mod",
+   "recomp": "__moddi3",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/ll.c __ll_mod (inventory rename; libgcc name __moddi3 before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000DB84",
+   "inventory": "__ll_rshift",
+   "recomp": "__ashrdi3",
+   "confidence": "high",
+   "evidence": "ultralib src/libc/ll.c __ll_rshift (inventory rename; libgcc name __ashrdi3 before). Kept under its former name for the recompiler so recompiled output is unchanged: N64Recomp lists the ll.c/llcvt.c names as ignored/reimplemented, so dropping this entry is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000DBC0",
+   "inventory": "__osPiCreateAccessQueue",
+   "recomp": "osPiInit",
+   "confidence": "high",
+   "evidence": "ultralib src/io/piacs.c __osPiCreateAccessQueue (inventory rename; osPiInit before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000DC80",
+   "inventory": "__osPiRawReadIo",
+   "recomp": "osPiRawReadIo_rx",
+   "confidence": "high",
+   "evidence": "waits PI_STATUS & 3, *data = *(osRomBase | devAddr | K1): libultra osPiRawReadIo (earlier inventory name osPiReadWord)"
+  },
+  {
+   "vram": "0x8000DCD0",
+   "inventory": "__osPiRawStartDma",
+   "recomp": "osPiRawStartDma",
+   "confidence": "high",
+   "evidence": "(dir, devAddr, dram, size): waits PI_STATUS, writes PI_DRAM_ADDR/PI_CART_ADDR/PI_RD_LEN|PI_WR_LEN directly: libultra osPiRawStartDma (earlier inventory name osPiStartDma)"
+  },
+  {
+   "vram": "0x8000DDA0",
+   "inventory": "__osEPiRawStartDma",
+   "recomp": "osEPiRawStartDma",
+   "confidence": "high",
+   "evidence": "(handle, dir, cartAddr, dram, size): compares __osCurrentHandle, programs PI_BSD_DOM regs, then the PI DMA registers: libultra osEPiRawStartDma (reached through the PI manager table) (earlier inventory name osPiSetDeviceTiming)"
+  },
+  {
+   "vram": "0x8000E390",
+   "inventory": "osPiGetCmdQueue",
+   "recomp": "__osInsertTimer",
+   "confidence": "high",
+   "evidence": "ultralib src/io/pigetcmdq.c osPiGetCmdQueue (inventory rename; __osInsertTimer before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000E620",
+   "inventory": "__osPfsGetStatus",
+   "recomp": "__osPfsGetStatus_rx",
+   "confidence": "high",
+   "evidence": "(mq, channel): __osPfsRequestOneChannel, SI DMA write+read, __osPfsGetOneChannelData, status bits; called only by PFS/ContRam code: libultra __osPfsGetStatus (earlier inventory name osContStartReadData)"
+  },
+  {
+   "vram": "0x8000EC70",
+   "inventory": "__osRepairPackId",
+   "recomp": "__osRepairId",
+   "confidence": "high",
+   "evidence": "ultralib src/io/contpfs.c __osRepairPackId (inventory rename, byte-identical compile of contpfs.c VERSION_J -g0 -O2; __osRepairId before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000EFC0",
+   "inventory": "__osCheckPackId",
+   "recomp": "__osCheckId",
+   "confidence": "high",
+   "evidence": "ultralib src/io/contpfs.c __osCheckPackId (inventory rename, byte-identical compile of contpfs.c VERSION_J -g0 -O2; __osCheckId before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000F2D0",
+   "inventory": "__osCheckId",
+   "recomp": "osPfsReadWriteFile_pages",
+   "confidence": "high",
+   "evidence": "ultralib src/io/contpfs.c __osCheckId (inventory rename, byte-identical compile of contpfs.c VERSION_J -g0 -O2; osPfsReadWriteFile_pages before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x80007840",
+   "inventory": "_VirtualToPhysicalTask",
+   "recomp": "osViModeTableGet",
+   "confidence": "high",
+   "evidence": "ultralib src/io/sptask.c _VirtualToPhysicalTask (inventory rename, byte-identical compile of sptask.c VERSION_J -g0 -O2; osViModeTableGet before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000D680",
+   "inventory": "__osSpRawStartDma",
+   "recomp": "__osSpDma",
+   "confidence": "high",
+   "evidence": "ultralib src/io/sprawdma.c __osSpRawStartDma (inventory rename, byte-identical compile of sprawdma.c VERSION_J -g0 -O2; __osSpDma before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x800095AC",
+   "inventory": "__osContGetInitData",
+   "recomp": "__osContGetStatus",
+   "confidence": "high",
+   "evidence": "ultralib src/io/controller.c __osContGetInitData (inventory rename, byte-identical compile of controller.c VERSION_J -g0 -O2; __osContGetStatus before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x80009658",
+   "inventory": "__osPackRequestData",
+   "recomp": "__osContRamReset",
+   "confidence": "high",
+   "evidence": "ultralib src/io/controller.c __osPackRequestData (inventory rename, byte-identical compile of controller.c VERSION_J -g0 -O2; __osContRamReset before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000E560",
+   "inventory": "__osSiCreateAccessQueue",
+   "recomp": "osSiInit",
+   "confidence": "high",
+   "evidence": "ultralib src/io/siacs.c __osSiCreateAccessQueue (inventory rename, byte-identical compile of siacs.c VERSION_J -g0 -O2; osSiInit before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000E6F0",
+   "inventory": "__osPfsRequestOneChannel",
+   "recomp": "__osContBuildRequest",
+   "confidence": "high",
+   "evidence": "ultralib src/io/pfsgetstatus.c __osPfsRequestOneChannel (inventory rename, byte-identical compile of pfsgetstatus.c VERSION_J -g0 -O2; __osContBuildRequest before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000E7B4",
+   "inventory": "__osPfsGetOneChannelData",
+   "recomp": "__osContParseResponse",
+   "confidence": "high",
+   "evidence": "ultralib src/io/pfsgetstatus.c __osPfsGetOneChannelData (inventory rename, byte-identical compile of pfsgetstatus.c VERSION_J -g0 -O2; __osContParseResponse before). Kept under its former name for the recompiler so recompiled output is unchanged; giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000C980",
+   "inventory": "__osExceptionPreamble",
+   "recomp": "__osException",
+   "confidence": "high",
+   "evidence": "ultralib src/os/exceptasm.s __osExceptionPreamble (inventory rename, byte-identical object; __osException before). Kept under its former name for the recompiler so recompiled output is unchanged (patches.json and the runtime shims key on it); giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000C990",
+   "inventory": "__osException",
+   "recomp": "__osExceptionPreamble",
+   "confidence": "high",
+   "evidence": "ultralib src/os/exceptasm.s __osException (inventory rename, byte-identical object; __osExceptionPreamble before). Kept under its former name for the recompiler so recompiled output is unchanged (patches.json and the runtime shims key on it); giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000CEDC",
+   "inventory": "send_mesg",
+   "recomp": "__osSendInterrupt",
+   "confidence": "high",
+   "evidence": "ultralib src/os/exceptasm.s send_mesg (inventory rename, byte-identical object; __osSendInterrupt before). Kept under its former name for the recompiler so recompiled output is unchanged (patches.json and the runtime shims key on it); giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000D298",
+   "inventory": "__osCleanupThread",
+   "recomp": "__osExceptionPanic",
+   "confidence": "high",
+   "evidence": "ultralib src/os/exceptasm.s __osCleanupThread (inventory rename, byte-identical object; __osExceptionPanic before). Kept under its former name for the recompiler so recompiled output is unchanged (patches.json and the runtime shims key on it); giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000D840",
+   "inventory": "osUnmapTLBAll",
+   "recomp": "__osTlbFlush",
+   "confidence": "high",
+   "evidence": "ultralib src/os/unmaptlball.s osUnmapTLBAll (inventory rename, byte-identical object; __osTlbFlush before). Kept under its former name for the recompiler so recompiled output is unchanged (patches.json and the runtime shims key on it); giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000D890",
+   "inventory": "osMapTLBRdb",
+   "recomp": "__osTlbInit",
+   "confidence": "high",
+   "evidence": "ultralib src/os/maptlbrdb.s osMapTLBRdb (inventory rename, byte-identical object; __osTlbInit before). Kept under its former name for the recompiler so recompiled output is unchanged (patches.json and the runtime shims key on it); giving N64Recomp the ultralib name is a recomp behaviour change."
+  },
+  {
+   "vram": "0x8000DBB0",
+   "inventory": "__osGetCause",
+   "recomp": "osCauseGet",
+   "confidence": "high",
+   "evidence": "ultralib src/os/getcause.s __osGetCause (inventory rename, byte-identical object; osCauseGet before). Kept under its former name for the recompiler so recompiled output is unchanged (patches.json and the runtime shims key on it); giving N64Recomp the ultralib name is a recomp behaviour change."
+  }
+ ]
+}

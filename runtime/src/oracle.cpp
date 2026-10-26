@@ -1,0 +1,513 @@
+// Frame oracle: deterministic per-frame state hashes for
+// differential runs (stock recompiled build vs a build with replaced
+// functions; the decompilation project's oracle.py compares the logs).
+//
+// A "frame" is one graphics task handed to the RSP by the libultra scheduler:
+// rush_hook_frame runs inside the recompiled __scExec (patches.json hook,
+// before osSpTaskStartGo), i.e. on a game thread while every other game
+// thread is suspended (ultramodern runs one game thread at a time), so the
+// snapshot is consistent. Per gfx frame the log gets
+//
+//   F <frame> dl=<xxh64> dls=<display lists> dlb=<bytes> ram=<xxh64 of 8 MiB> stk=<xxh64>
+//   P <page>:<xxh64> ...      pages (4 KiB) whose hash changed since the last F
+//   S <frame> <stack top>     a thread stack (osCreateThread); stack bytes are
+//                             masked out of page hashes and hashed into stk=
+//   T <frame> <OSThread>      a thread struct (osCreateThread); its host-pointer
+//                             words (+0x18, +0x1C) are masked out of page hashes
+//
+// Display lists are walked from the task's data_ptr through G_DL calls and
+// branches (F3DEX and F3DEX2 opcodes; segment table tracked through
+// G_MOVEWORD), each list hashed by its command words. Pages are the N64's
+// 8 MiB of RDRAM; the replacement image above 8 MiB is not hashed.
+//
+// The log also gets "R <name> <calls>" lines (replaced-function call counts)
+// and "E <frame> <text>" events.
+#include <algorithm>
+#include <array>
+#include <atomic>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <mutex>
+#include <set>
+#include <tuple>
+#include <string>
+#include <vector>
+
+#include <span>
+
+#include "recomp.h"
+#include "librecomp/game.hpp"
+#include "xxHash/xxh3.h"
+#include "ultramodern/ultra64.h"
+#include "rush_runtime.h"
+#include "rush_wrap.h"
+#include "rush2049_repl.h"  // generated with the config: replaced-function names
+
+namespace {
+
+constexpr uint32_t kRamBytes = 8u << 20;
+constexpr uint32_t kPage = 4096;
+constexpr uint32_t kPages = kRamBytes / kPage;
+
+FILE* log_file = nullptr;
+uint64_t stop_after = 0;
+uint64_t dump_at = 0;
+std::string dump_path;
+std::atomic<uint64_t> frames{0};
+std::vector<uint64_t> prev_pages(kPages, 0);
+std::mutex log_mu;
+std::array<std::atomic<uint64_t>, RUSH_REPL_COUNT + 1> repl_calls{};
+
+uint32_t rd32(uint8_t* rdram, uint32_t addr) {
+    return (uint32_t)MEM_W(0, (gpr)(int32_t)(0x80000000u | (addr & 0x00FFFFFFu)));
+}
+
+// Thread stacks (osCreateThread's sp argument = top of stack). Their contents
+// below the live sp are dead and differ whenever a replaced body has a
+// different frame, so they are masked out of the page hashes and hashed on
+// their own ("stk="). A stack spans from its top down to the next lower top,
+// at most kMaxStack bytes.
+constexpr uint32_t kMaxStack = 0x2000;
+std::vector<uint32_t> stack_tops;            // N64 addresses, sorted
+std::vector<std::pair<uint32_t, uint32_t>> stack_ranges;  // [lo, hi) offsets into rdram
+
+void rebuild_stack_ranges() {
+    stack_ranges.clear();
+    uint32_t prev = 0;
+    for (uint32_t top : stack_tops) {
+        uint32_t hi = top & 0x00FFFFFFu;
+        uint32_t lo = hi > kMaxStack ? hi - kMaxStack : 0;
+        if (lo < prev) lo = prev;
+        if (lo < hi && hi <= kRamBytes) stack_ranges.push_back({lo, hi});
+        prev = hi;
+    }
+}
+
+struct DlWalk {
+    uint8_t* rdram;
+    bool f3dex2 = true;
+    uint32_t segments[16] = {};
+    std::set<uint32_t> seen;
+    uint64_t hash = 0x9E3779B97F4A7C15ull;
+    uint32_t lists = 0, bytes = 0, commands = 0;
+    // RDP images the lists render to (G_SETCIMG 0xFF, G_SETZIMG 0xFE; same
+    // opcodes in F3D/F3DEX/F3DEX2) and the largest scissor height
+    // (G_SETSCISSOR 0xED): a real renderer writes these images back into
+    // rdram (RT64 framebuffer write-back), so oracle.py --mask-renderer
+    // leaves their pages unjudged. (kind, address, width, bytes per pixel)
+    std::set<std::tuple<char, uint32_t, uint32_t, uint32_t>> images;
+    uint32_t last_cimg_width = 320, last_cimg_bpp = 2, max_scissor_h = 0;
+
+    uint32_t resolve(uint32_t a) const {
+        if ((a & 0xE0000000u) == 0x80000000u) return a & 0x1FFFFFFFu;  // KSEG0/1
+        uint32_t seg = (a >> 24) & 0xF;
+        return (segments[seg] + (a & 0x00FFFFFFu)) & 0x1FFFFFFFu;
+    }
+
+    void walk(uint32_t phys, int depth) {
+        while (phys + 8 <= kRamBytes && commands < (1u << 20)) {
+            if (!seen.insert(phys).second) return;  // list already hashed
+            lists++;
+            for (;;) {
+                if (phys + 8 > kRamBytes || commands++ >= (1u << 20)) return;
+                uint32_t w0 = rd32(rdram, phys), w1 = rd32(rdram, phys + 4);
+                uint32_t pair[2] = {w0, w1};
+                hash = XXH3_64bits_withSeed(pair, sizeof pair, hash);
+                phys += 8;
+                bytes += 8;
+                uint8_t op = w0 >> 24;
+                uint8_t g_dl = f3dex2 ? 0xDE : 0x06, g_end = f3dex2 ? 0xDF : 0xB8;
+                uint8_t g_mw = f3dex2 ? 0xDB : 0xBC;
+                if (op == g_mw) {
+                    uint32_t index = f3dex2 ? (w0 >> 16) & 0xFF : w0 & 0xFF;
+                    uint32_t offset = f3dex2 ? w0 & 0xFFFF : (w0 >> 8) & 0xFFFF;
+                    if (index == 6 && offset / 4 < 16) segments[offset / 4] = w1 & 0x1FFFFFFFu;
+                } else if (op == g_dl) {
+                    uint32_t target = resolve(w1);
+                    if (((w0 >> 16) & 0xFF) == 0) {  // call: walk, then continue here
+                        if (depth < 16 && !seen.count(target)) walk(target, depth + 1);
+                    } else {                           // branch: this list ends
+                        phys = target;
+                        break;
+                    }
+                } else if (op == g_end) {
+                    return;
+                } else if (op == 0xFF || op == 0xFE) {
+                    uint32_t addr = 0x80000000u | resolve(w1);
+                    if (op == 0xFF) {
+                        last_cimg_width = (w0 & 0xFFF) + 1;
+                        last_cimg_bpp = ((w0 >> 19) & 3) == 3 ? 4 : ((w0 >> 19) & 3) == 2 ? 2 : 1;
+                        images.insert({'C', addr, last_cimg_width, last_cimg_bpp});
+                    } else {
+                        images.insert({'Z', addr, last_cimg_width, 2});
+                    }
+                } else if (op == 0xED) {
+                    max_scissor_h = std::max(max_scissor_h, ((w1 & 0xFFF) + 3) >> 2);
+                }
+            }
+        }
+    }
+};
+
+void log_line(const char* fmt, ...) RUSH_PRINTF(1, 2);
+void log_line(const char* fmt, ...) {
+    if (!log_file) return;
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(log_file, fmt, ap);
+    va_end(ap);
+}
+
+} // namespace
+
+const std::vector<std::pair<uint32_t, uint32_t>>& rush::oracle_stack_ranges() { return stack_ranges; }
+
+// OSThread words the runtime owns. N64ModernRuntime's OSThread
+// (ultramodern/ultra64.h) keeps `UltraThreadContext* context`, an 8-byte HOST
+// pointer, at offsetof(OSThread, context) = +0x20 on x86-64 (8-aligned after
+// pad3 at +0x18): its two words differ between any two runs (heap/ASLR; two
+// stock runs' rdram differ in exactly these words, 11 threads). They are
+// masked (zeroed) in the page hashes and left out of call effects; the rest
+// of the struct (next, priority, queue, flags/state, id, sp) and of the
+// game's larger OSThread is N64 state and judged.
+namespace {
+std::vector<uint32_t> thread_structs;        // rdram offsets of OSThread structs
+std::vector<uint32_t> masked_words;          // sorted rdram offsets
+constexpr uint32_t kCtx = offsetof(OSThread, context);
+static_assert(sizeof(((OSThread*)nullptr)->context) == 8, "host pointer = two N64 words");
+constexpr uint32_t kThreadHostWords[] = {kCtx, kCtx + 4};
+}
+
+bool rush::oracle_word_masked(uint32_t off) {
+    return std::binary_search(masked_words.begin(), masked_words.end(), off & ~3u);
+}
+
+void rush::oracle_note_thread(uint32_t thread) {
+    std::lock_guard<std::mutex> lock(log_mu);
+    uint32_t off = thread & 0x00FFFFFFu;
+    if (std::find(thread_structs.begin(), thread_structs.end(), off) != thread_structs.end()) return;
+    thread_structs.push_back(off);
+    for (uint32_t w : kThreadHostWords) masked_words.push_back(off + w);
+    std::sort(masked_words.begin(), masked_words.end());
+    log_line("T %llu 0x%08X\n", (unsigned long long)frames.load(), 0x80000000u | off);
+}
+
+void rush::oracle_note_stack(uint32_t top) {
+    std::lock_guard<std::mutex> lock(log_mu);
+    if (std::find(stack_tops.begin(), stack_tops.end(), top) != stack_tops.end()) return;
+    stack_tops.push_back(top);
+    std::sort(stack_tops.begin(), stack_tops.end());
+    rebuild_stack_ranges();
+    log_line("S %llu 0x%08X\n", (unsigned long long)frames.load(), top);
+}
+
+extern "C" void __real_osCreateThread_recomp(uint8_t* rdram, recomp_context* ctx);
+extern "C" void __wrap_osCreateThread_recomp(uint8_t* rdram, recomp_context* ctx) {
+    rush::oracle_note_stack((uint32_t)MEM_W(0x10, ctx->r29));
+    rush::oracle_note_thread((uint32_t)ctx->r4);
+    __real_osCreateThread_recomp(rdram, ctx);
+}
+
+// --mask-rdp-images: the bytes of every RDP color/depth image seen so far are
+// zeroed in the page hashes (like thread stacks, but not hashed separately), so
+// a run whose renderer writes them back (RT64) compares with a null-renderer
+// run on everything else. Both runs of a comparison must use it (header line).
+namespace {
+bool mask_images = false;
+std::vector<std::pair<uint32_t, uint32_t>> image_ranges;   // [lo, hi) rdram offsets
+}
+void rush::oracle_mask_images(bool on) { mask_images = on; }
+
+void rush::oracle_start(const std::string& path, uint64_t stop_frames) {
+    stop_after = stop_frames;
+    if (path.empty()) return;
+    log_file = fopen(path.c_str(), "w");
+    if (!log_file) {
+        fprintf(stderr, "[rush] cannot write oracle log %s\n", path.c_str());
+        std::exit(2);
+    }
+    log_line("# rush2049 frame oracle v1: pages=%u page_bytes=%u replaced=%d\n", kPages, kPage,
+             RUSH_REPL_COUNT);
+    for (int i = 0; i < RUSH_REPL_COUNT; i++) log_line("# replaced %s\n", rush_repl_names[i]);
+    log_line("# thread_host_words 0x%X,0x%X\n", kThreadHostWords[0], kThreadHostWords[1]);
+    if (mask_images) log_line("# mask rdp_images\n");
+}
+
+uint64_t rush::oracle_frames() { return frames.load(); }
+
+void rush::oracle_dump_at(uint64_t frame, const std::string& path) {
+    dump_at = frame;
+    dump_path = path;
+}
+
+void rush::oracle_event(const char* text) {
+    std::lock_guard<std::mutex> lock(log_mu);
+    log_line("E %llu %s\n", (unsigned long long)frames.load(), text);
+}
+
+void rush::oracle_finish(const char* why) {
+    std::lock_guard<std::mutex> lock(log_mu);
+    for (int i = 0; i < RUSH_REPL_COUNT; i++) {
+        log_line("R %s %llu\n", rush_repl_names[i], (unsigned long long)repl_calls[i].load());
+        fprintf(stderr, "[rush] replaced %s called %llu times\n", rush_repl_names[i],
+                (unsigned long long)repl_calls[i].load());
+    }
+    log_line("END %llu %s\n", (unsigned long long)frames.load(), why);
+    if (log_file) fflush(log_file);
+    rush::capture_finish();
+}
+
+void rush::oracle_fault_flush() {
+    if (!log_file || !log_mu.try_lock()) return;
+    fflush(log_file);
+    log_mu.unlock();
+}
+
+// Called by the generated replacement hooks (written by the config generator)
+// before the replacement body runs: counts calls per replaced function. The
+// first call copies the replacement image (.repl section of the synthetic
+// ROM, IDO-compiled bodies with their rodata/data) into rdram above the
+// game's 8 MiB; the runtime commits 512 MiB, the game sees osMemSize 8 MiB.
+extern "C" void rush_repl_count(uint8_t* rdram, int index) {
+    static std::once_flag loaded;
+    std::call_once(loaded, [rdram] {
+        if (RUSH_REPL_SIZE == 0) return;
+        std::span<const uint8_t> rom = recomp::get_rom();
+        if (rom.size() < RUSH_REPL_ROM + RUSH_REPL_SIZE) {
+            fprintf(stderr, "[rush] synthetic ROM has no replacement image\n");
+            std::_Exit(3);
+        }
+        for (uint32_t i = 0; i < RUSH_REPL_SIZE; i += 4) {
+            const uint8_t* b = rom.data() + RUSH_REPL_ROM + i;
+            MEM_W(i, (gpr)(int32_t)RUSH_REPL_VRAM) =
+                (int32_t)((uint32_t)b[0] << 24 | (uint32_t)b[1] << 16 | (uint32_t)b[2] << 8 | b[3]);
+        }
+        rush::trace_event("replacement image loaded: %u B at 0x%08X", RUSH_REPL_SIZE, RUSH_REPL_VRAM);
+    });
+    if (index >= 0 && index < RUSH_REPL_COUNT) repl_calls[index]++;
+}
+
+// Deterministic clock for --clock frames (linked with --wrap): the game reads
+// osGetCount (dll_update/dll_reschedule frame timing) and the scheduler
+// osGetTime (__osScFrameTime). Wall time makes replays diverge (two stock
+// runs: first display-list difference at frame 1232), so with the frame
+// clock both return virtual time: 1/30 s per graphics frame, plus a small
+// per-call step so successive reads stay strictly increasing within a frame.
+namespace {
+bool virtual_clock = false;
+std::mutex clock_mu;
+uint64_t clock_last = 0;
+constexpr uint64_t kCountPerFrame = 46875000ull / 30;  // CP0 Count runs at 46.875 MHz
+constexpr uint64_t kCountPerVi = 46875000ull / 60;
+// Never behind the current virtual VI (lockstep) or graphics frame; each read
+// advances 64 ticks, so busy-waits on the count finish without time advancing.
+uint64_t virtual_count() {
+    std::lock_guard<std::mutex> lock(clock_mu);
+    uint64_t base = rush::lockstep_enabled() ? rush::lockstep_vis() * kCountPerVi
+                                             : frames.load() * kCountPerFrame;
+    clock_last = std::max(clock_last + 64, base);
+    return clock_last;
+}
+} // namespace
+
+void rush::oracle_virtual_clock(bool on) { virtual_clock = on; }
+
+extern "C" void __real_osGetCount_recomp(uint8_t* rdram, recomp_context* ctx);
+extern "C" void __real_osGetTime_recomp(uint8_t* rdram, recomp_context* ctx);
+
+extern "C" void __wrap_osGetCount_recomp(uint8_t* rdram, recomp_context* ctx) {
+    if (!virtual_clock) { __real_osGetCount_recomp(rdram, ctx); return; }
+    ctx->r2 = (gpr)(int32_t)(uint32_t)virtual_count();
+}
+
+extern "C" void __wrap_osGetTime_recomp(uint8_t* rdram, recomp_context* ctx) {
+    if (!virtual_clock) { __real_osGetTime_recomp(rdram, ctx); return; }
+    uint64_t t = virtual_count();
+    ctx->r2 = (gpr)(int32_t)(uint32_t)(t >> 32);
+    ctx->r3 = (gpr)(int32_t)(uint32_t)t;
+}
+
+// --text-log PATH: the strings the game queues for drawing.
+// An --extra-hooks entry in the game's string-queue function (menu_input_process,
+// 0x800B6994: a0 = the string, a1 = its length or < 0 for NUL-terminated)
+// calls rush_text_log; a line `<frame>\t<text>` is written when a string
+// appears that the previous frame did not draw (so a screen is listed once,
+// not 30 times a second).
+namespace {
+FILE* text_file = nullptr;
+std::mutex text_mu;
+std::set<std::string> text_prev, text_cur;
+uint64_t text_frame = ~0ull;
+} // namespace
+
+void rush::oracle_text_log(const std::string& path) {
+    if (path.empty()) return;
+    text_file = fopen(path.c_str(), "w");
+    if (!text_file) fprintf(stderr, "[rush] cannot write %s\n", path.c_str());
+}
+
+extern "C" void rush_text_log(uint8_t* rdram, recomp_context* ctx) {
+    if (!text_file) return;
+    int32_t len = (int32_t)(int16_t)(uint16_t)ctx->r5;
+    if (len < 0 || len > 255) len = 255;
+    uint32_t addr = (uint32_t)ctx->r4;
+    if (addr < 0x80000000u || addr >= 0x80000000u + kRamBytes - 256) return;
+    std::string text;
+    for (int32_t i = 0; i < len; i++) {
+        char c = (char)MEM_B(i, (gpr)(int32_t)addr);
+        if (c == 0) break;
+        text.push_back((c >= 0x20 && c < 0x7F) ? c : '?');
+    }
+    if (text.empty()) return;
+    std::lock_guard<std::mutex> lock(text_mu);
+    uint64_t f = frames.load();
+    if (f != text_frame) {
+        text_prev.swap(text_cur);
+        text_cur.clear();
+        text_frame = f;
+    }
+    if (text_cur.insert(text).second && !text_prev.count(text)) {
+        fprintf(text_file, "%llu\t%s\n", (unsigned long long)f, text.c_str());
+        fflush(text_file);
+    }
+}
+
+// --poke: a scene lever. Each poke writes a value into
+// N64 memory when its graphics frame starts (here, on the game thread that
+// submits the frame, every other game thread suspended), before the frame's
+// hashes: deterministic, and identical on both sides of a comparison. Used by
+// scripts (`poke TIME ADDR VALUE [BYTES]`) to reach states input alone cannot
+// in reasonable time (a 1-lap ghost race: the lap count is fixed at 3).
+namespace {
+struct Poke { uint64_t frame; uint32_t addr; uint32_t value; int bytes; };
+std::vector<Poke> pokes;
+}
+
+bool rush::oracle_add_poke(const std::string& spec) {
+    unsigned long long f = 0;
+    unsigned int addr = 0, value = 0;
+    int bytes = 4;
+    int n = sscanf(spec.c_str(), "%llu:%x:%x:%d", &f, &addr, &value, &bytes);
+    if (n < 3 || (bytes != 1 && bytes != 2 && bytes != 4) || addr < 0x80000000u || addr >= 0x80800000u ||
+        addr % bytes)
+        return false;
+    pokes.push_back({f, addr, value, bytes});
+    return true;
+}
+
+static void apply_pokes(uint8_t* rdram, uint64_t n) {
+    for (const Poke& p : pokes) {
+        if (p.frame != n) continue;
+        gpr base = (gpr)(int32_t)p.addr;
+        if (p.bytes == 4) MEM_W(0, base) = (int32_t)p.value;
+        else if (p.bytes == 2) MEM_H(0, base) = (int16_t)p.value;
+        else MEM_B(0, base) = (int8_t)p.value;
+        char ev[64];
+        snprintf(ev, sizeof ev, "poke 0x%08X=0x%X/%d", p.addr, p.value, p.bytes);
+        rush::oracle_event(ev);
+    }
+}
+
+// patches.json hook in __scExec, before osSpTaskStartGo(&task->list).
+extern "C" void rush_hook_frame(uint8_t* rdram, recomp_context* ctx) {
+    uint32_t sc_task = (uint32_t)MEM_W(0x24, ctx->r29);
+    uint32_t task = sc_task + 0x10;  // OSScTask.list (OSTask)
+    uint32_t type = (uint32_t)MEM_W(0x00, (gpr)(int32_t)task);
+    if (type != M_GFXTASK) return;
+    uint64_t n = ++frames;
+    if (!pokes.empty()) apply_pokes(rdram, n);
+    if (log_file) {
+        DlWalk w{rdram};
+        uint32_t data_ptr = (uint32_t)MEM_W(0x30, (gpr)(int32_t)task) & 0x1FFFFFFFu;
+        uint32_t data_size = (uint32_t)MEM_W(0x34, (gpr)(int32_t)task);
+        // F3DEX2 ends lists with 0xDF, F3D/F3DEX with 0xB8: look at the last top-level word.
+        if (data_size >= 8 && data_ptr + data_size <= kRamBytes) {
+            for (uint32_t off = 0; off + 8 <= data_size; off += 8) {
+                uint8_t op = rd32(rdram, data_ptr + off) >> 24;
+                if (op == 0xDF) { w.f3dex2 = true; break; }
+                if (op == 0xB8) { w.f3dex2 = false; break; }
+            }
+            w.walk(data_ptr, 0);
+        }
+        // "# rdp_image F KIND+ADDR/WxH/BPP" the first time a render target
+        // (color or depth image) appears (header line: older oracle.py skips it).
+        static std::set<std::string> seen_images;
+        for (const auto& [kind, addr, width, bpp] : w.images) {
+            char img[64];
+            snprintf(img, sizeof img, "%c%08X/%ux%u/%u", kind, addr, width,
+                     w.max_scissor_h ? w.max_scissor_h : 240u, bpp);
+            if (!seen_images.insert(img).second) continue;
+            log_line("# rdp_image %llu %s\n", (unsigned long long)n, img);
+            uint32_t lo = addr & 0x1FFFFFFFu;
+            uint32_t hi = std::min<uint64_t>(kRamBytes, (uint64_t)lo + (uint64_t)width * bpp *
+                                             (w.max_scissor_h ? w.max_scissor_h : 240u));
+            if (lo < hi) image_ranges.push_back({lo, hi});
+        }
+        // RDRAM: word-swapped host storage hashed as stored (a fixed bijection
+        // of the N64 bytes, so equal hashes <=> equal memory).
+        std::string changed;
+        uint64_t all = 0, stk = 0;
+        char buf[40];
+        static std::vector<uint8_t> scratch(kPage);
+        for (uint32_t p = 0; p < kPages; p++) {
+            const uint8_t* bytes = rdram + p * kPage;
+            uint32_t lo = p * kPage, hi = lo + kPage;
+            bool masked = false;
+            for (const auto& r : stack_ranges) {
+                if (r.second <= lo || r.first >= hi) continue;
+                if (!masked) { std::copy(bytes, bytes + kPage, scratch.begin()); masked = true; }
+                uint32_t a = std::max(r.first, lo), b = std::min(r.second, hi);
+                stk = XXH3_64bits_withSeed(bytes + (a - lo), b - a, stk);
+                std::fill(scratch.begin() + (a - lo), scratch.begin() + (b - lo), 0);
+            }
+            if (mask_images) {
+                for (const auto& r : image_ranges) {
+                    if (r.second <= lo || r.first >= hi) continue;
+                    if (!masked) { std::copy(bytes, bytes + kPage, scratch.begin()); masked = true; }
+                    std::fill(scratch.begin() + (std::max(r.first, lo) - lo), scratch.begin() + (std::min(r.second, hi) - lo), 0);
+                }
+            }
+            for (auto it = std::lower_bound(masked_words.begin(), masked_words.end(), lo);
+                 it != masked_words.end() && *it < hi; ++it) {
+                if (!masked) { std::copy(bytes, bytes + kPage, scratch.begin()); masked = true; }
+                std::fill(scratch.begin() + (*it - lo), scratch.begin() + (*it - lo) + 4, 0);
+            }
+            uint64_t h = XXH3_64bits(masked ? scratch.data() : bytes, kPage);
+            all = XXH3_64bits_withSeed(&h, sizeof h, all);
+            if (h != prev_pages[p] || n == 1) {
+                prev_pages[p] = h;
+                snprintf(buf, sizeof buf, " %u:%016llx", p, (unsigned long long)h);
+                changed += buf;
+            }
+        }
+        std::lock_guard<std::mutex> lock(log_mu);
+        log_line("F %llu dl=%016llx dls=%u dlb=%u ram=%016llx stk=%016llx\n", (unsigned long long)n,
+                 (unsigned long long)w.hash, w.lists, w.bytes, (unsigned long long)all,
+                 (unsigned long long)stk);
+        if (!changed.empty()) log_line("P%s\n", changed.c_str());
+        if (n == 1) {   // the graphics task's RSP buffers (OSTask fields)
+            auto f = [&](uint32_t off) { return (uint32_t)MEM_W(off, (gpr)(int32_t)task); };
+            log_line("# gfx_task ucode=%08X dram_stack=%08X/%u output_buff=%08X/%08X yield_data=%08X/%u\n",
+                     f(0x10), f(0x20), f(0x24), f(0x28), f(0x2C), f(0x38), f(0x3C));
+        }
+    }
+    if (dump_at && n == dump_at && !dump_path.empty()) {
+        if (FILE* f = fopen(dump_path.c_str(), "wb")) {   // big-endian N64 byte order
+            for (uint32_t i = 0; i < kRamBytes; i += 4) {
+                uint32_t w = (uint32_t)MEM_W(0, (gpr)(int32_t)(0x80000000u + i));
+                uint8_t b[4] = {(uint8_t)(w >> 24), (uint8_t)(w >> 16), (uint8_t)(w >> 8), (uint8_t)w};
+                fwrite(b, 1, 4, f);
+            }
+            fclose(f);
+        }
+    }
+    if (stop_after && n >= stop_after) {
+        rush::trace_final();
+        rush::oracle_finish("frames");
+        rush::trace_event("oracle: stopping after %llu frames", (unsigned long long)n);
+        rush::run_exit_hook();
+        fflush(stderr);
+        std::_Exit(0);
+    }
+}

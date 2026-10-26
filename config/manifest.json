@@ -1,0 +1,1410 @@
+{
+ "absolute_data_symbols": 1527,
+ "audio_ucode": {
+  "config": "rush2049.rsp_audio.toml",
+  "function": "rush_audio_ucode",
+  "imem": "0x04001080",
+  "text_rom": "0x0002AC50",
+  "text_sha256": "afc63003d7e820718ef4ec6e11a84c2eda95a04d154c2df031d5260d65a36b94",
+  "text_size": 3904
+ },
+ "data_symbol_conflicts": [
+  {
+   "dropped": 2148615916,
+   "from": "game",
+   "kept": 2148627636,
+   "name": "gstate"
+  },
+  {
+   "dropped": 2148615916,
+   "from": "ovl_a",
+   "kept": 2148627636,
+   "name": "gstate"
+  },
+  {
+   "dropped": 2148615916,
+   "from": "ovl_b",
+   "kept": 2148627636,
+   "name": "gstate"
+  }
+ ],
+ "entrypoint": "0x80000400",
+ "generator": "tools/recomp/gen_config.py",
+ "identity_renames": [
+  {
+   "inventory": "_VirtualToPhysicalTask",
+   "recomp": "osViModeTableGet",
+   "vram": "0x80007840"
+  },
+  {
+   "inventory": "osSyncPrintf",
+   "recomp": "osWritebackDCache_full",
+   "vram": "0x800086F0"
+  },
+  {
+   "inventory": "rmonPrintf",
+   "recomp": "rmonPrintf_rx",
+   "vram": "0x8000870C"
+  },
+  {
+   "inventory": "__osContGetInitData",
+   "recomp": "__osContGetStatus",
+   "vram": "0x800095AC"
+  },
+  {
+   "inventory": "__osPackRequestData",
+   "recomp": "__osContRamReset",
+   "vram": "0x80009658"
+  },
+  {
+   "inventory": "__d_to_ll",
+   "recomp": "__fixdfdi",
+   "vram": "0x800099F0"
+  },
+  {
+   "inventory": "__f_to_ll",
+   "recomp": "__fixsfdi",
+   "vram": "0x80009A0C"
+  },
+  {
+   "inventory": "__d_to_ull",
+   "recomp": "__fixunsdfdi",
+   "vram": "0x80009A28"
+  },
+  {
+   "inventory": "__f_to_ull",
+   "recomp": "__fixunssfdi",
+   "vram": "0x80009AC8"
+  },
+  {
+   "inventory": "__ll_to_d",
+   "recomp": "__floatdidf",
+   "vram": "0x80009B64"
+  },
+  {
+   "inventory": "__ll_to_f",
+   "recomp": "__floatdisf",
+   "vram": "0x80009B7C"
+  },
+  {
+   "inventory": "__ull_to_d",
+   "recomp": "__floatundidf",
+   "vram": "0x80009B94"
+  },
+  {
+   "inventory": "__ull_to_f",
+   "recomp": "__floatundisf",
+   "vram": "0x80009BC8"
+  },
+  {
+   "inventory": "__osPfsCheckRamArea",
+   "recomp": "__osTimerInterrupt",
+   "vram": "0x80009E18"
+  },
+  {
+   "inventory": "__osMakeMotorData",
+   "recomp": "__osMakeMotorData_rx",
+   "vram": "0x8000A088"
+  },
+  {
+   "inventory": "__osPfsReleasePages",
+   "recomp": "__osPfsReleasePages_rx",
+   "vram": "0x8000A8D8"
+  },
+  {
+   "inventory": "__osPfsGetNextPage",
+   "recomp": "__osPfsGetNextPage_rx",
+   "vram": "0x8000ADF0"
+  },
+  {
+   "inventory": "osStopThread",
+   "recomp": "osStopThread_rx",
+   "vram": "0x8000BD90"
+  },
+  {
+   "inventory": "__osDequeueThread",
+   "recomp": "dll_remove",
+   "vram": "0x8000C050"
+  },
+  {
+   "inventory": "__osTimerServicesInit",
+   "recomp": "dll_init",
+   "vram": "0x8000C090"
+  },
+  {
+   "inventory": "__osTimerInterrupt",
+   "recomp": "dll_update",
+   "vram": "0x8000C11C"
+  },
+  {
+   "inventory": "__osSetTimerIntr",
+   "recomp": "dll_reschedule",
+   "vram": "0x8000C294"
+  },
+  {
+   "inventory": "__osInsertTimer",
+   "recomp": "dll_insert",
+   "vram": "0x8000C308"
+  },
+  {
+   "inventory": "__osExceptionPreamble",
+   "recomp": "__osException",
+   "vram": "0x8000C980"
+  },
+  {
+   "inventory": "__osException",
+   "recomp": "__osExceptionPreamble",
+   "vram": "0x8000C990"
+  },
+  {
+   "inventory": "send_mesg",
+   "recomp": "__osSendInterrupt",
+   "vram": "0x8000CEDC"
+  },
+  {
+   "inventory": "__osEnqueueAndYield",
+   "recomp": "__osCleanupThread",
+   "vram": "0x8000CFC4"
+  },
+  {
+   "inventory": "__osCleanupThread",
+   "recomp": "__osExceptionPanic",
+   "vram": "0x8000D298"
+  },
+  {
+   "inventory": "__osSpRawStartDma",
+   "recomp": "__osSpDma",
+   "vram": "0x8000D680"
+  },
+  {
+   "inventory": "__osSiRawReadIo",
+   "recomp": "__osSiRawReadIo_rx",
+   "vram": "0x8000D7A0"
+  },
+  {
+   "inventory": "__osSiRawWriteIo",
+   "recomp": "__osSiRawWriteIo_rx",
+   "vram": "0x8000D7F0"
+  },
+  {
+   "inventory": "osUnmapTLBAll",
+   "recomp": "__osTlbFlush",
+   "vram": "0x8000D840"
+  },
+  {
+   "inventory": "osMapTLBRdb",
+   "recomp": "__osTlbInit",
+   "vram": "0x8000D890"
+  },
+  {
+   "inventory": "__ull_rshift",
+   "recomp": "__lshrdi3",
+   "vram": "0x8000D8F0"
+  },
+  {
+   "inventory": "__ull_rem",
+   "recomp": "__umoddi3",
+   "vram": "0x8000D91C"
+  },
+  {
+   "inventory": "__ull_div",
+   "recomp": "__udivdi3",
+   "vram": "0x8000D958"
+  },
+  {
+   "inventory": "__ll_lshift",
+   "recomp": "__ashldi3",
+   "vram": "0x8000D994"
+  },
+  {
+   "inventory": "__ll_rem",
+   "recomp": "__umoddi3_alt",
+   "vram": "0x8000D9C0"
+  },
+  {
+   "inventory": "__ll_div",
+   "recomp": "__divdi3",
+   "vram": "0x8000D9FC"
+  },
+  {
+   "inventory": "__ll_mul",
+   "recomp": "__muldi3",
+   "vram": "0x8000DA58"
+  },
+  {
+   "inventory": "__ull_divremi",
+   "recomp": "__qdivrem",
+   "vram": "0x8000DA88"
+  },
+  {
+   "inventory": "__ll_mod",
+   "recomp": "__moddi3",
+   "vram": "0x8000DAE8"
+  },
+  {
+   "inventory": "__ll_rshift",
+   "recomp": "__ashrdi3",
+   "vram": "0x8000DB84"
+  },
+  {
+   "inventory": "__osGetCause",
+   "recomp": "osCauseGet",
+   "vram": "0x8000DBB0"
+  },
+  {
+   "inventory": "__osPiCreateAccessQueue",
+   "recomp": "osPiInit",
+   "vram": "0x8000DBC0"
+  },
+  {
+   "inventory": "__osPiRawReadIo",
+   "recomp": "osPiRawReadIo_rx",
+   "vram": "0x8000DC80"
+  },
+  {
+   "inventory": "__osPiRawStartDma",
+   "recomp": "osPiRawStartDma",
+   "vram": "0x8000DCD0"
+  },
+  {
+   "inventory": "__osEPiRawStartDma",
+   "recomp": "osEPiRawStartDma",
+   "vram": "0x8000DDA0"
+  },
+  {
+   "inventory": "osPiGetCmdQueue",
+   "recomp": "__osInsertTimer",
+   "vram": "0x8000E390"
+  },
+  {
+   "inventory": "__osSiCreateAccessQueue",
+   "recomp": "osSiInit",
+   "vram": "0x8000E560"
+  },
+  {
+   "inventory": "__osPfsGetStatus",
+   "recomp": "__osPfsGetStatus_rx",
+   "vram": "0x8000E620"
+  },
+  {
+   "inventory": "__osPfsRequestOneChannel",
+   "recomp": "__osContBuildRequest",
+   "vram": "0x8000E6F0"
+  },
+  {
+   "inventory": "__osPfsGetOneChannelData",
+   "recomp": "__osContParseResponse",
+   "vram": "0x8000E7B4"
+  },
+  {
+   "inventory": "__osRepairPackId",
+   "recomp": "__osRepairId",
+   "vram": "0x8000EC70"
+  },
+  {
+   "inventory": "__osCheckPackId",
+   "recomp": "__osCheckId",
+   "vram": "0x8000EFC0"
+  },
+  {
+   "inventory": "__osCheckId",
+   "recomp": "osPfsReadWriteFile_pages",
+   "vram": "0x8000F2D0"
+  }
+ ],
+ "inventory_functions": {
+  "game": 1216,
+  "ovl_a": 193,
+  "ovl_b": 49,
+  "static": 667
+ },
+ "n64recomp_builtin_lists": {
+  "game": {
+   "ignored": [],
+   "reimplemented": [],
+   "renamed": []
+  },
+  "ovl_a": {
+   "ignored": [],
+   "reimplemented": [],
+   "renamed": []
+  },
+  "ovl_b": {
+   "ignored": [],
+   "reimplemented": [],
+   "renamed": []
+  },
+  "static": {
+   "ignored": [
+    "__osAiDeviceBusy",
+    "__osCheckId",
+    "__osCleanupThread",
+    "__osContAddressCrc",
+    "__osContDataCrc",
+    "__osContRamRead",
+    "__osContRamWrite",
+    "__osDispatchThread",
+    "__osEPiRawReadIo",
+    "__osEPiRawWriteIo",
+    "__osEnqueueThread",
+    "__osException",
+    "__osExceptionPreamble",
+    "__osGetId",
+    "__osGetSR",
+    "__osInsertTimer",
+    "__osPackReadData",
+    "__osPfsRWInode",
+    "__osPfsRequestData",
+    "__osPfsSelectBank",
+    "__osPiGetAccess",
+    "__osPiRelAccess",
+    "__osPopThread",
+    "__osProbeTLB",
+    "__osResetGlobalIntMask",
+    "__osSetCompare",
+    "__osSetGlobalIntMask",
+    "__osSetSR",
+    "__osSiDeviceBusy",
+    "__osSiGetAccess",
+    "__osSiRawStartDma",
+    "__osSiRelAccess",
+    "__osSpDeviceBusy",
+    "__osSpSetStatus",
+    "__osTimerInterrupt",
+    "__osViSwapContext",
+    "osDpGetCounters",
+    "osPfsChecker",
+    "osPfsIsPlug",
+    "osPfsRepairId",
+    "osPiRawStartDma",
+    "osYieldThread"
+   ],
+   "reimplemented": [
+    "__osDisableInt",
+    "__osInitialize_common",
+    "__osMotorAccess",
+    "__osRestoreInt",
+    "__osSetFpcCsr",
+    "__osSpSetPc",
+    "osAiSetFrequency",
+    "osAiSetNextBuffer",
+    "osContGetQuery",
+    "osContGetReadData",
+    "osContInit",
+    "osContStartQuery",
+    "osContStartReadData",
+    "osCreateMesgQueue",
+    "osCreatePiManager",
+    "osCreateThread",
+    "osCreateViManager",
+    "osDestroyThread",
+    "osDpSetNextBuffer",
+    "osEPiRawStartDma",
+    "osGetCount",
+    "osGetThreadId",
+    "osGetThreadPri",
+    "osGetTime",
+    "osInvalDCache",
+    "osInvalICache",
+    "osJamMesg",
+    "osMotorInit",
+    "osPfsAllocateFile",
+    "osPfsDeleteFile",
+    "osPfsFileState",
+    "osPfsFindFile",
+    "osPfsFreeBlocks",
+    "osPfsInitPak",
+    "osPfsReadWriteFile",
+    "osPiReadIo",
+    "osPiStartDma",
+    "osRecvMesg",
+    "osSendMesg",
+    "osSetEventMesg",
+    "osSetIntMask",
+    "osSetThreadPri",
+    "osSetTimer",
+    "osSpTaskLoad",
+    "osSpTaskStartGo",
+    "osSpTaskYield",
+    "osSpTaskYielded",
+    "osStartThread",
+    "osViBlack",
+    "osViGetCurrentFramebuffer",
+    "osViGetNextFramebuffer",
+    "osViSetEvent",
+    "osViSetMode",
+    "osViSetSpecialFeatures",
+    "osViSwapBuffer",
+    "osVirtualToPhysical",
+    "osWritebackDCache",
+    "osWritebackDCacheAll"
+   ],
+   "renamed": [
+    "__divdi3",
+    "__moddi3",
+    "__muldi3",
+    "__udivdi3",
+    "__umoddi3",
+    "bcmp",
+    "bcopy",
+    "bzero",
+    "cosf",
+    "fcvt",
+    "huft_build",
+    "inflate_block",
+    "inflate_dynamic",
+    "inflate_fixed",
+    "inflate_stored",
+    "memcpy",
+    "memset",
+    "modf",
+    "sinf",
+    "sprintf",
+    "sqrtf",
+    "strchr",
+    "strlen"
+   ]
+  }
+ },
+ "patches": {
+  "hook": [
+   {
+    "before_vram": "0x80000EE0",
+    "call": "rush_hook_frame",
+    "func": "__scExec"
+   },
+   {
+    "before_vram": "0x80002218",
+    "call": "rush_hook_park_idle",
+    "func": "idle_thread_entry"
+   },
+   {
+    "before_vram": null,
+    "call": "rush_hook_inflate",
+    "func": "inflate_entry"
+   }
+  ],
+  "ignored": {
+   "__fixdfdi": "trunc.l.d unsupported (double -> s64); runtime provides __fixdfdi",
+   "__fixsfdi": "trunc.l.s unsupported (float -> s64); runtime provides __fixsfdi",
+   "__osSendInterrupt": "branches into another function (0x8000CFBC -> 0x8000CE94): exception/interrupt code the runtime replaces",
+   "osCauseGet": "mfc0 cop0 register 13 (Cause); runtime provides osCauseGet",
+   "osStopThread_rx": "libultra osStopThread (inventory osPfsChecker_full, identity.json); the game stops and restarts other threads (music_tempo_set, world_collision_response, func_800E847C, func_800EB028), but N64ModernRuntime's osStopThread only handles the calling thread (assert otherwise, a no-op in release) and the following osStartThread then inserts a running/queued thread into the run queue a second time (self-loop: boot hang). Shim in tools/recomp/runtime/src/shims.cpp."
+  },
+  "instruction": [
+   {
+    "func": "func_800277D0",
+    "original": "0x04100036",
+    "value": "0x3C1F8002",
+    "vram": "0x800277E0"
+   },
+   {
+    "func": "func_800277D0",
+    "original": "0x00000000",
+    "value": "0x37FF77E8",
+    "vram": "0x800277E4"
+   },
+   {
+    "func": "func_800278C4",
+    "original": "0x04100022",
+    "value": "0x3C1F8002",
+    "vram": "0x800278EC"
+   },
+   {
+    "func": "func_800278C4",
+    "original": "0x00000000",
+    "value": "0x37FF78F4",
+    "vram": "0x800278F0"
+   },
+   {
+    "func": "func_80027B44",
+    "original": "0x04100065",
+    "value": "0x3C1F8002",
+    "vram": "0x80027BA4"
+   },
+   {
+    "func": "func_80027B44",
+    "original": "0x00000000",
+    "value": "0x37FF7BAC",
+    "vram": "0x80027BA8"
+   },
+   {
+    "func": "func_80027B44",
+    "original": "0x04100062",
+    "value": "0x3C1F8002",
+    "vram": "0x80027BC8"
+   },
+   {
+    "func": "func_80027B44",
+    "original": "0x00000000",
+    "value": "0x37FF7BD0",
+    "vram": "0x80027BCC"
+   },
+   {
+    "func": "func_80027B44",
+    "original": "0x0410005D",
+    "value": "0x3C1F8002",
+    "vram": "0x80027BEC"
+   },
+   {
+    "func": "func_80027B44",
+    "original": "0x00000000",
+    "value": "0x37FF7BF4",
+    "vram": "0x80027BF0"
+   },
+   {
+    "func": "func_80027B44",
+    "original": "0x0410005A",
+    "value": "0x3C1F8002",
+    "vram": "0x80027C10"
+   },
+   {
+    "func": "func_80027B44",
+    "original": "0x00000000",
+    "value": "0x37FF7C18",
+    "vram": "0x80027C14"
+   },
+   {
+    "func": "hud_render",
+    "original": "0x8F000000",
+    "value": "0x00000000",
+    "vram": "0x800CB408"
+   }
+  ],
+  "renamed": {
+   "__isinf": "host glibc __isinf (conflicting types); emitted as __isinf_recomp",
+   "__isnan": "host glibc __isnan (conflicting types); emitted as __isnan_recomp",
+   "main": "host C: main must be int main(int, char**); emitted as main_recomp",
+   "memchr": "host libc builtin memchr (incompatible redeclaration); emitted as memchr_recomp",
+   "modff": "host libm modff (conflicting types); emitted as modff_recomp"
+  },
+  "stubs": {
+   "__osTlbFlush": "mfc0 cop0 register 10 (EntryHi; TLB unused by the recompiled game)",
+   "__osTlbInit": "mfc0 cop0 register 10 (EntryHi; TLB unused by the recompiled game)",
+   "func_8002C5E0": "cache instruction (D-cache range loop; no host meaning)"
+  }
+ },
+ "provisional_functions": {
+  "static": [
+   "func_800277D0",
+   "func_800278C4",
+   "func_80027980",
+   "func_80027B44",
+   "func_80027C98",
+   "func_80027D3C",
+   "func_80027D54",
+   "func_80027D64",
+   "func_80027D7C",
+   "func_8002C5E0"
+  ]
+ },
+ "replacements": {
+  "image": null,
+  "native": [],
+  "probes_dropped": [],
+  "replaced": []
+ },
+ "rom_sha1": "3f99351d7bb61656614bdb2aa1a90cfe55d1922c",
+ "runtime_contract": {
+  "hooks": [
+   "rush_hook_frame",
+   "rush_hook_inflate",
+   "rush_hook_park_idle",
+   "rush_hook_spin"
+  ],
+  "images": [
+   {
+    "name": "game",
+    "section_rom": "0x00C00000",
+    "size": 647072,
+    "stream_rom": "0x00B0CB10",
+    "vram": "0x80086A50"
+   },
+   {
+    "name": "ovl_a",
+    "section_rom": "0x00CA0000",
+    "size": 194128,
+    "stream_rom": "0x00B5C534",
+    "vram": "0x8038A400"
+   },
+   {
+    "name": "ovl_b",
+    "section_rom": "0x00CD0000",
+    "size": 43888,
+    "stream_rom": "0x00B6FEC4",
+    "vram": "0x8038A400"
+   }
+  ],
+  "shims": {
+   "__osContAddressCrc_recomp": [
+    "__osMakeMotorData_rx"
+   ],
+   "__osContRamRead_recomp": [
+    "__osRepairId",
+    "osPfsReadWriteFile_pages"
+   ],
+   "__osContRamWrite_recomp": [
+    "__osRepairId"
+   ],
+   "__osDisableInt_recomp": [
+    "dll_insert",
+    "dll_reschedule",
+    "func_80013DEC"
+   ],
+   "__osEPiRawReadIo_recomp": [
+    "osSpTaskLoad_full"
+   ],
+   "__osEPiRawWriteIo_recomp": [
+    "osSpTaskLoad_full"
+   ],
+   "__osInitialize_common_recomp": [
+    "main"
+   ],
+   "__osMotorAccess_recomp": [
+    "audio_queue_process",
+    "check_mpath_save"
+   ],
+   "__osPfsRWInode_recomp": [
+    "__osPfsCheckPages",
+    "__osPfsGetNextPage_rx",
+    "__osPfsPageCheck"
+   ],
+   "__osPfsSelectBank_recomp": [
+    "__osRepairId",
+    "osPfsReadWriteFile_pages"
+   ],
+   "__osResetGlobalIntMask_recomp": [
+    "osSpTaskLoad_full"
+   ],
+   "__osRestoreInt_recomp": [
+    "dll_insert",
+    "dll_reschedule",
+    "func_80013DEC"
+   ],
+   "__osSetCompare_recomp": [
+    "dll_reschedule",
+    "dll_update"
+   ],
+   "__osSetFpcCsr_recomp": [],
+   "__osSetGlobalIntMask_recomp": [
+    "osSpTaskLoad_full"
+   ],
+   "__osSiDeviceBusy_recomp": [
+    "__osSiRawReadIo_rx",
+    "__osSiRawWriteIo_rx"
+   ],
+   "__osSiRawStartDma_recomp": [
+    "__osPfsGetStatus_rx"
+   ],
+   "__osSpDeviceBusy_recomp": [
+    "__osSpDma"
+   ],
+   "__osSpSetPc_recomp": [],
+   "__osViSwapContext_recomp": [
+    "osViInit",
+    "vi_manager_main"
+   ],
+   "osAiSetFrequency_recomp": [
+    "func_80010C68",
+    "func_80010D3C"
+   ],
+   "osAiSetNextBuffer_recomp": [
+    "func_80010A40"
+   ],
+   "osContGetQuery_recomp": [
+    "func_800E73D8"
+   ],
+   "osContGetReadData_recomp": [
+    "func_800E73D8"
+   ],
+   "osContInit_recomp": [
+    "func_800E7710"
+   ],
+   "osContStartQuery_recomp": [
+    "func_800E73D8"
+   ],
+   "osContStartReadData_recomp": [
+    "func_800E73D8"
+   ],
+   "osCreateMesgQueue_recomp": [
+    "PS_CreateFile",
+    "PS_FlushFile",
+    "PS_FlushPak",
+    "audio_queue_process",
+    "brake_force_apply",
+    "car_shadow_render",
+    "check_mpath_save",
+    "dma_queue_init",
+    "dma_wait_complete",
+    "drone_set_catchup",
+    "entity_ai_pathfind",
+    "func_800105C4",
+    "func_80010C68",
+    "func_800114C0",
+    "func_80014550",
+    "func_800250AC",
+    "func_800252AC",
+    "func_80025EB0",
+    "func_8008A704",
+    "func_800A1A60",
+    "func_800E7038",
+    "func_800E73D8",
+    "func_800E7710",
+    "func_800E7D0C",
+    "game_init",
+    "game_late_init",
+    "hud_setup",
+    "osCreateScheduler",
+    "osPiInit",
+    "osSiInit",
+    "pak_delete_file_retry",
+    "render_thread_entry",
+    "sync_init_conditional",
+    "task_complete_signal",
+    "track_data_decompress",
+    "track_render_process"
+   ],
+   "osCreatePiManager_recomp": [
+    "idle_thread_entry"
+   ],
+   "osCreateThread_recomp": [
+    "car_lod_select",
+    "car_shadow_render",
+    "func_80010C68",
+    "game_init",
+    "hud_setup",
+    "idle_thread_entry",
+    "main",
+    "osCreateScheduler"
+   ],
+   "osCreateViManager_recomp": [
+    "osCreateScheduler"
+   ],
+   "osDestroyThread_recomp": [
+    "__osExceptionPanic"
+   ],
+   "osDpSetNextBuffer_recomp": [
+    "__scExec"
+   ],
+   "osEPiRawStartDma_recomp": [],
+   "osGetCount_recomp": [
+    "__osRepairId",
+    "dll_reschedule",
+    "dll_update",
+    "vi_manager_main"
+   ],
+   "osGetThreadId_recomp": [
+    "game_state_check_handler",
+    "save_settings"
+   ],
+   "osGetThreadPri_recomp": [],
+   "osGetTime_recomp": [
+    "__scExec",
+    "__scMain"
+   ],
+   "osInvalDCache_recomp": [
+    "drone_set_catchup",
+    "func_80010628",
+    "func_80010714",
+    "func_80011F60",
+    "func_800123A8",
+    "func_800252AC",
+    "func_80025C68",
+    "func_80097164",
+    "game_init",
+    "inflate_entry",
+    "inflate_io_wait",
+    "inflate_read_bits",
+    "lzss_decode"
+   ],
+   "osInvalICache_recomp": [
+    "func_80097164",
+    "game_init",
+    "inflate_entry"
+   ],
+   "osJamMesg_recomp": [
+    "__scMain"
+   ],
+   "osMotorInit_recomp": [
+    "audio_queue_process",
+    "check_mpath_save",
+    "track_render_process"
+   ],
+   "osPfsAllocateFile_recomp": [
+    "PS_CreateFile"
+   ],
+   "osPfsDeleteFile_recomp": [
+    "pak_delete_file_retry"
+   ],
+   "osPfsFileState_recomp": [
+    "PS_CreateFile",
+    "func_800A1A60",
+    "track_render_process"
+   ],
+   "osPfsFindFile_recomp": [],
+   "osPfsFreeBlocks_recomp": [
+    "PS_CreateFile",
+    "pak_delete_file_retry",
+    "track_render_process"
+   ],
+   "osPfsInitPak_recomp": [
+    "track_render_process"
+   ],
+   "osPfsReadWriteFile_recomp": [
+    "drone_set_catchup",
+    "track_data_decompress"
+   ],
+   "osPfsRepairId_recomp": [
+    "track_render_process"
+   ],
+   "osPiReadIo_recomp": [
+    "main"
+   ],
+   "osPiStartDma_recomp": [
+    "func_8008ABE4",
+    "func_80097164",
+    "inflate_entry",
+    "inflate_io_wait",
+    "inflate_read_bits",
+    "lzss_decode"
+   ],
+   "osRecvMesg_recomp": [
+    "AdjustSteer",
+    "CompressGhost",
+    "DrawGhost",
+    "DrawName",
+    "DrawUnlocked",
+    "MP_TargetSpeed",
+    "NextMaxPath",
+    "PS_CreateFile",
+    "PS_FlushFile",
+    "PS_FlushPak",
+    "PrintScores",
+    "RaceStateMachine_Update",
+    "SaveGhost",
+    "SetHighScoreState",
+    "TitlePane",
+    "__osPfsGetStatus_rx",
+    "__scMain",
+    "__scSchedule",
+    "animElapsedTimerText",
+    "animLapTime",
+    "animPlace",
+    "animResults",
+    "animWrongWay",
+    "assign_default_paths",
+    "audio_animButtonText",
+    "audio_animText",
+    "audio_buffer_sync",
+    "audio_dma_sync",
+    "audio_effect_process",
+    "audio_frame_sync",
+    "audio_loop_control",
+    "audio_occlusion",
+    "audio_output_setup",
+    "audio_queue_process",
+    "audio_task_complete",
+    "brake_force_apply",
+    "buffer_swap",
+    "camera_clip_planes",
+    "camera_target_track",
+    "car_angular_velocity_clamp",
+    "car_damage_visual",
+    "car_stats_display",
+    "check_mpath_save",
+    "checkpoint_hit",
+    "client_sync",
+    "control_cell_text",
+    "control_cell_text2",
+    "control_cell_text3",
+    "control_settings",
+    "controller_poll",
+    "controls_animButtonText",
+    "controls_animText",
+    "countdown_handler",
+    "credits_screen",
+    "credits_scroll",
+    "display_enable",
+    "display_list_flush",
+    "dma_wait",
+    "dma_wait_complete",
+    "drawBattleScore",
+    "drawMain",
+    "drone_collision_avoid",
+    "drone_pathfind_main",
+    "drone_set_catchup",
+    "dust_cloud_effect",
+    "emitter_update",
+    "engine_sound_sync",
+    "entity_ai_pathfind",
+    "entity_flags_apply",
+    "entity_hierarchy_update",
+    "explosion_effect",
+    "finish_state_alt",
+    "func_80010628",
+    "func_80010A40",
+    "func_80011CD8",
+    "func_80014594",
+    "func_80014624",
+    "func_800250F0",
+    "func_80025150",
+    "func_80025F74",
+    "func_8008A704",
+    "func_80096130",
+    "func_80097164",
+    "func_80098FB8",
+    "func_800A1A60",
+    "func_800A3640",
+    "func_800B4FB0",
+    "func_800C885C",
+    "func_800C8918",
+    "func_800CB748",
+    "func_800CB9D0",
+    "func_800D5374",
+    "func_800D5A04",
+    "func_800D6348",
+    "func_800D63EC",
+    "func_800D6E00",
+    "func_800D7634",
+    "func_800D9058",
+    "func_800DD0C0",
+    "func_800E0050",
+    "func_800E05F0",
+    "func_800E7134",
+    "func_800E73D8",
+    "func_800E7710",
+    "func_800E79F8",
+    "func_800E7A98",
+    "func_800E7C2C",
+    "func_800EF288",
+    "func_800F857C",
+    "func_800F87A0",
+    "func_80100B8C",
+    "func_80100E58",
+    "func_80101904",
+    "func_80101D84",
+    "func_80102448",
+    "func_80102F30",
+    "func_80106874",
+    "func_80106B3C",
+    "func_80107EDC",
+    "func_801084D4",
+    "func_80109F54",
+    "func_8010A53C",
+    "func_8010B5D0",
+    "func_8010B7FC",
+    "func_8010B9C8",
+    "func_8010BC84",
+    "func_8010E8B4",
+    "func_8010EA08",
+    "func_8010F218",
+    "game_init",
+    "game_late_init",
+    "game_mode_handler",
+    "game_timer_display",
+    "game_timer_pause",
+    "game_timer_resume",
+    "ghost_race_setup",
+    "high_scores_display",
+    "highscore_InitScreen",
+    "highscore_animText",
+    "inflate_entry",
+    "inflate_io_wait",
+    "inflate_read_bits",
+    "leaderboard_update",
+    "lzss_decode",
+    "main_menu_input",
+    "menu_input_process",
+    "menu_item_select",
+    "menu_transition",
+    "mode_select_input",
+    "object_activate",
+    "object_counter_decrement",
+    "object_counter_increment",
+    "object_create",
+    "object_type1_create",
+    "object_type7_create",
+    "object_type7_create_alt",
+    "options_animButtonText",
+    "options_animText",
+    "osSpTaskLoad_full",
+    "pak_delete_file_retry",
+    "particle_render",
+    "particles_update",
+    "playgame_state_change",
+    "render_thread_entry",
+    "replay_save_prompt",
+    "results_screen_update",
+    "results_time_display",
+    "scheduler_recv",
+    "skid_mark_render",
+    "sound_bank_unload",
+    "sound_play_menu",
+    "speed_set",
+    "stat_lap_complete",
+    "stat_race_end",
+    "sync_acquire_menu",
+    "sync_entry_register",
+    "synced_model_render",
+    "task_complete_signal",
+    "time_result_display",
+    "tire_compound_set",
+    "track_data_decompress",
+    "track_render_process",
+    "vi_manager_main",
+    "voice_stop",
+    "wheel_params_set",
+    "world_trigger_activate",
+    "world_trigger_check",
+    "world_velocity_integrate"
+   ],
+   "osSendMesg_recomp": [
+    "AdjustSteer",
+    "CompressGhost",
+    "DrawGhost",
+    "DrawName",
+    "DrawUnlocked",
+    "MP_TargetSpeed",
+    "NextMaxPath",
+    "PS_CreateFile",
+    "PS_FlushFile",
+    "PS_FlushPak",
+    "PrintScores",
+    "RaceStateMachine_Update",
+    "SaveGhost",
+    "SetHighScoreState",
+    "TitlePane",
+    "__scExecTask",
+    "__scHandleRetrace",
+    "animElapsedTimerText",
+    "animLapTime",
+    "animPlace",
+    "animResults",
+    "animWrongWay",
+    "assign_default_paths",
+    "audio_animButtonText",
+    "audio_animText",
+    "audio_buffer_sync",
+    "audio_dma_sync",
+    "audio_effect_process",
+    "audio_frame_sync",
+    "audio_loop_control",
+    "audio_occlusion",
+    "audio_output_setup",
+    "audio_queue_process",
+    "audio_task_complete",
+    "brake_force_apply",
+    "buffer_swap",
+    "camera_clip_planes",
+    "camera_target_track",
+    "car_angular_velocity_clamp",
+    "car_damage_visual",
+    "car_stats_display",
+    "check_mpath_save",
+    "checkpoint_hit",
+    "client_sync",
+    "control_cell_text",
+    "control_cell_text2",
+    "control_cell_text3",
+    "control_settings",
+    "controller_poll",
+    "controls_animButtonText",
+    "controls_animText",
+    "countdown_handler",
+    "credits_screen",
+    "credits_scroll",
+    "display_enable",
+    "display_list_flush",
+    "dll_update",
+    "dma_queue_init",
+    "dma_signal",
+    "drawBattleScore",
+    "drawMain",
+    "drone_collision_avoid",
+    "drone_pathfind_main",
+    "drone_set_catchup",
+    "dust_cloud_effect",
+    "emitter_update",
+    "engine_sound_sync",
+    "entity_ai_pathfind",
+    "entity_flags_apply",
+    "entity_hierarchy_update",
+    "entity_transform_calc",
+    "explosion_effect",
+    "finish_state_alt",
+    "func_80010450",
+    "func_80010D74",
+    "func_80014550",
+    "func_800145DC",
+    "func_80014650",
+    "func_8002506C",
+    "func_800250AC",
+    "func_80025120",
+    "func_8002517C",
+    "func_8008A704",
+    "func_80096130",
+    "func_80098FB8",
+    "func_800A1A60",
+    "func_800A3640",
+    "func_800B4FB0",
+    "func_800C885C",
+    "func_800C8918",
+    "func_800CB748",
+    "func_800CB9D0",
+    "func_800D5374",
+    "func_800D5A04",
+    "func_800D6348",
+    "func_800D63EC",
+    "func_800D6E00",
+    "func_800D7634",
+    "func_800D9058",
+    "func_800DD0C0",
+    "func_800E0050",
+    "func_800E05F0",
+    "func_800E7038",
+    "func_800E7134",
+    "func_800E73D8",
+    "func_800E7710",
+    "func_800E79F8",
+    "func_800E7A98",
+    "func_800E7C2C",
+    "func_800E7D0C",
+    "func_800EF288",
+    "func_800F857C",
+    "func_800F87A0",
+    "func_80100B8C",
+    "func_80100E58",
+    "func_80101904",
+    "func_80101D84",
+    "func_80102448",
+    "func_80102F30",
+    "func_80106874",
+    "func_80106B3C",
+    "func_80107EDC",
+    "func_801084D4",
+    "func_80109F54",
+    "func_8010A53C",
+    "func_8010B5D0",
+    "func_8010B7FC",
+    "func_8010B9C8",
+    "func_8010BC84",
+    "func_8010E8B4",
+    "func_8010EA08",
+    "func_8010F218",
+    "func_8010FBE0",
+    "game_init",
+    "game_late_init",
+    "game_mode_handler",
+    "game_timer_display",
+    "game_timer_pause",
+    "game_timer_resume",
+    "ghost_race_setup",
+    "high_scores_display",
+    "highscore_InitScreen",
+    "highscore_animText",
+    "hud_setup",
+    "leaderboard_update",
+    "main_menu_input",
+    "menu_input_process",
+    "menu_item_select",
+    "menu_transition",
+    "mode_select_input",
+    "object_activate",
+    "object_counter_decrement",
+    "object_counter_increment",
+    "object_create",
+    "object_type1_create",
+    "object_type7_create",
+    "object_type7_create_alt",
+    "options_animButtonText",
+    "options_animText",
+    "osPiInit",
+    "osSiInit",
+    "osSpTaskLoad_full",
+    "pak_delete_file_retry",
+    "particle_render",
+    "particles_update",
+    "playgame_state_change",
+    "replay_save_prompt",
+    "results_screen_update",
+    "results_time_display",
+    "scheduler_recv",
+    "skid_mark_render",
+    "sound_bank_unload",
+    "sound_play_menu",
+    "speed_set",
+    "stat_lap_complete",
+    "stat_race_end",
+    "sync_entry_register",
+    "sync_init_conditional",
+    "sync_release_video",
+    "synced_model_render",
+    "task_complete_signal",
+    "time_result_display",
+    "tire_compound_set",
+    "track_data_decompress",
+    "track_render_process",
+    "vi_manager_main",
+    "voice_stop",
+    "wheel_params_set",
+    "world_collision_response",
+    "world_trigger_activate",
+    "world_trigger_check",
+    "world_velocity_integrate"
+   ],
+   "osSetEventMesg_recomp": [
+    "func_80010C68",
+    "func_800E7710",
+    "osCreateScheduler"
+   ],
+   "osSetIntMask_recomp": [
+    "display_update",
+    "osScAddClient",
+    "viTickStart"
+   ],
+   "osSetThreadPri_recomp": [
+    "brake_force_apply",
+    "idle_thread_entry"
+   ],
+   "osSetTimer_recomp": [],
+   "osSpTaskLoad_recomp": [
+    "__scExec"
+   ],
+   "osSpTaskStartGo_recomp": [
+    "__scExec"
+   ],
+   "osSpTaskYield_recomp": [
+    "__scHandlePreNMI"
+   ],
+   "osSpTaskYielded_recomp": [
+    "__scHandleRSP"
+   ],
+   "osStartThread_recomp": [
+    "car_lod_select",
+    "car_shadow_render",
+    "func_80010C68",
+    "func_800E847C",
+    "func_800EB028",
+    "game_init",
+    "hud_setup",
+    "idle_thread_entry",
+    "main",
+    "music_tempo_set",
+    "osCreateScheduler",
+    "world_collision_response"
+   ],
+   "osStopThread_rx": [
+    "func_800E847C",
+    "func_800EB028",
+    "music_tempo_set",
+    "world_collision_response"
+   ],
+   "osViBlack_recomp": [
+    "display_mode_tick",
+    "osCreateScheduler",
+    "world_trigger_activate"
+   ],
+   "osViGetCurrentFramebuffer_recomp": [
+    "__scTaskReady",
+    "world_trigger_activate"
+   ],
+   "osViGetNextFramebuffer_recomp": [
+    "__scTaskReady",
+    "world_trigger_activate"
+   ],
+   "osViSetEvent_recomp": [
+    "osCreateScheduler"
+   ],
+   "osViSetMode_recomp": [
+    "apply_display_mode",
+    "display_mode_tick",
+    "osCreateScheduler"
+   ],
+   "osViSetSpecialFeatures_recomp": [
+    "display_mode_tick",
+    "gfx_frame_begin"
+   ],
+   "osViSwapBuffer_recomp": [
+    "__scExecTask",
+    "__scHandleRetrace"
+   ],
+   "osVirtualToPhysical_recomp": [
+    "__osSpDma",
+    "func_800F7448",
+    "gfx_frame_begin",
+    "osViModeTableGet"
+   ],
+   "osWritebackDCacheAll_recomp": [
+    "__scExec"
+   ],
+   "osWritebackDCache_recomp": [
+    "display_update",
+    "func_80010A40",
+    "func_80010E80",
+    "func_80011104",
+    "func_80011910",
+    "func_80014C40",
+    "func_80014C60",
+    "track_data_decompress"
+   ],
+   "osYieldThread_recomp": [
+    "func_80010628",
+    "func_800118C0",
+    "func_80011CD8",
+    "osSpTaskLoad_full"
+   ]
+  }
+ },
+ "sections": [
+  {
+   "data_symbols": 109,
+   "function_bytes": 162268,
+   "functions": 677,
+   "image_sha256": "fdccac846e1c2bbc431860f4d76d69f2820fccee4f809a98cb495d8dd0499482",
+   "name": ".static",
+   "name_prefix": "",
+   "rom": "0x00001000",
+   "size": 189664,
+   "vram": "0x80000400"
+  },
+  {
+   "data_symbols": 1773,
+   "function_bytes": 561860,
+   "functions": 1216,
+   "image_sha256": "bf7da3fa6283428a97372250cd4076d15e9eae10f9d5709c0387fe0742d43a1d",
+   "name": ".game",
+   "name_prefix": "",
+   "rom": "0x00C00000",
+   "size": 647072,
+   "vram": "0x80086A50"
+  },
+  {
+   "data_symbols": 7,
+   "function_bytes": 152952,
+   "functions": 193,
+   "image_sha256": "0d6702c320df84cc6cbc3c5967dde08d44b6e476e110667fe2a43dc2dd536667",
+   "name": ".ovl_a",
+   "name_prefix": "ovl_a_",
+   "rom": "0x00CA0000",
+   "size": 194128,
+   "vram": "0x8038A400"
+  },
+  {
+   "data_symbols": 1,
+   "function_bytes": 38708,
+   "functions": 49,
+   "image_sha256": "b55fc2d1b22eb1ebdf01286a69a181b496da7b45ff7aec888ff74b7db748e7cd",
+   "name": ".ovl_b",
+   "name_prefix": "ovl_b_",
+   "rom": "0x00CD0000",
+   "size": 43888,
+   "vram": "0x8038A400"
+  }
+ ],
+ "synthetic_rom": {
+  "path": "rom/rush2049.recomp.z64",
+  "sha256": "120270514798d1c08811c56f8ff1b0984aae063576cbfd642a6a6a1056b0e2ec",
+  "size": 13500416
+ },
+ "total_functions": 2135
+}
